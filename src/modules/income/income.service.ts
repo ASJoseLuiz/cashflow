@@ -60,7 +60,7 @@ export class IncomeService {
     newValue: number
   ): Promise<void> {
     await incomeModel.findOneAndUpdate(
-      { "value.userId": userId, key: incomeId },
+      { key: incomeId, "value.userId": userId },
       { $set: { "value.valor": newValue } }
     );
   }
@@ -71,7 +71,7 @@ export class IncomeService {
     newCategory: string
   ): Promise<void> {
     await incomeModel.findOneAndUpdate(
-      { "value.userId": userId, key: incomeId },
+      { key: incomeId, "value.userId": userId },
       { $set: { "value.category": newCategory } }
     );
   }
@@ -82,7 +82,7 @@ export class IncomeService {
     newDescription: string
   ): Promise<void> {
     await incomeModel.findOneAndUpdate(
-      { "value.userId": userId, key: incomeId },
+      { key: incomeId, "value.userId": userId },
       { $set: { "value.description": newDescription } }
     );
   }

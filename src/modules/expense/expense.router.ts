@@ -35,7 +35,7 @@ expenseRouter.delete("/", authMiddleware, (req, res, next) =>
 );
 
 expenseRouter.put(
-  "/",
+  "/:expenseId",
   authMiddleware,
   validateBody(updateExpenseSchema),
   (req, res, next) => expenseController.updateExpense(req, res, next)

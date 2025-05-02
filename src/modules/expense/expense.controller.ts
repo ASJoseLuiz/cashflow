@@ -69,7 +69,8 @@ export class ExpenseController {
     next: NextFunction
   ): Promise<void> {
     const userId = req.user.sub;
-    const { expenseId, value, description, category } = req.body;
+    const { expenseId } = req.params;
+    const { value, description, category } = req.body;
 
     try {
       if (value) {
@@ -90,7 +91,7 @@ export class ExpenseController {
         );
       }
 
-      res.status(200).json({ message: "Usuário atualizado com sucesso" });
+      res.status(200).json({ message: "Despesa atualizada com sucesso" });
     } catch (error) {
       next(error);
     }

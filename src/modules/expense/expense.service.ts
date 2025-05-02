@@ -52,12 +52,12 @@ export class ExpenseService {
     expenseId: string
   ): Promise<void> {
     const despesa = await despesaModel.findOne({
-      key: expenseId,
+      _id: expenseId,
       "value.userId": userId,
     });
     if (!despesa)
       throw new NotFoundException(
-        `Receita não encontrada para o usuário de id ${userId}`
+        `Despesa não encontrada para o usuário de id ${userId}`
       );
 
     await despesaModel.deleteOne({ _id: expenseId });
@@ -69,7 +69,7 @@ export class ExpenseService {
     newCategory: string
   ): Promise<void> {
     const result = await despesaModel.findOneAndUpdate(
-      { key: expenseId, "value.userId": userId },
+      { _id: expenseId, "value.userId": userId },
       { $set: { "value.categoria": newCategory } }
     );
 
@@ -82,7 +82,7 @@ export class ExpenseService {
     newDescription: string
   ): Promise<void> {
     const result = await despesaModel.findOneAndUpdate(
-      { key: expenseId, "value.userId": userId },
+      { _id: expenseId, "value.userId": userId },
       { $set: { "value.description": newDescription } }
     );
 
@@ -95,7 +95,7 @@ export class ExpenseService {
     newValue: number
   ): Promise<void> {
     const result = await despesaModel.findOneAndUpdate(
-      { key: expenseId, "value.userId": userId },
+      { _id: expenseId, "value.userId": userId },
       { $set: { "value.valor": newValue } }
     );
 
