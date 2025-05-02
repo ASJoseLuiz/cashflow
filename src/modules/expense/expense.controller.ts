@@ -28,12 +28,6 @@ export class ExpenseController {
     next: NextFunction
   ): Promise<void> {
     const userId = req.user.sub;
-    const { otherId } = req.params;
-    if (userId != otherId) {
-      throw new ForbiddenException(
-        "Não se pode acessar as despesas de outro usuário"
-      );
-    }
     try {
       const despesas = await this.expenseService.getExpensesByUserId(userId);
       res.status(200).json(despesas);

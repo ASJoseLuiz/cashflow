@@ -70,7 +70,7 @@ export class ExpenseService {
   ): Promise<void> {
     const result = await despesaModel.findOneAndUpdate(
       { _id: expenseId, "value.userId": userId },
-      { $set: { "value.categoria": newCategory } }
+      { $set: { "value.category": newCategory } }
     );
 
     if (!result) throw new NotFoundException("Despesa não encontrada");
