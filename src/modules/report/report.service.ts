@@ -10,19 +10,16 @@ export class ReportService {
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 1);
 
-    // Busca despesas do mês
     const despesas = await expenseModel.find({
       "value.userId": userId,
       "value.date": { $gte: start, $lt: end },
     });
 
-    // Busca receitas do mês
     const receitas = await incomeModel.find({
       "value.userId": userId,
       "value.date": { $gte: start, $lt: end },
     });
 
-    // Evita que valor undefined ou campos ausentes causem erros
     const totalDespesas = despesas.length
       ? despesas.reduce((acc, d) => acc + (d.value!.valor || 0), 0)
       : 0;
@@ -48,13 +45,11 @@ export class ReportService {
     const start = new Date(year, 0, 1); // Janeiro
     const end = new Date(year + 1, 0, 1); // Janeiro do ano seguinte
 
-    // Busca despesas do ano
     const despesas = await expenseModel.find({
       "value.userId": userId,
       "value.date": { $gte: start, $lt: end },
     });
 
-    // Busca receitas do ano
     const receitas = await incomeModel.find({
       "value.userId": userId,
       "value.date": { $gte: start, $lt: end },
