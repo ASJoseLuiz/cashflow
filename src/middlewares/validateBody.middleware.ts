@@ -13,8 +13,7 @@ export function validateBody(schema: ZodSchema) {
       return;
     }
 
-    // Substitui o body com os dados validados
     req.body = result.data;
-    next(); // Continua para o próximo middleware/controller
+    next();
   };
 }
