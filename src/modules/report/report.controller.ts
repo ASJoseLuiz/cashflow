@@ -17,7 +17,7 @@ export class ReportController {
     const { tipo, mes, ano, semestre } = req.query;
 
     if (!userId || !ano || typeof tipo !== "string") {
-      return res.status(400).json({ message: "Parâmetros inválidos" });
+      res.status(400).json({ message: "Parâmetros inválidos" });
     }
 
     try {
@@ -27,7 +27,7 @@ export class ReportController {
       switch (tipo) {
         case "mensal":
           if (!mes) {
-            return res.status(400).json({ message: "Mês é obrigatório para relatório mensal" });
+            res.status(400).json({ message: "Mês é obrigatório para relatório mensal" });
           }
           report = await this.reportService.generateMonthlyReport(
             userId,
@@ -42,7 +42,7 @@ export class ReportController {
 
         case "semestral":
           if (!semestre || !["1", "2"].includes(semestre.toString())) {
-            return res.status(400).json({ message: "Semestre inválido (use 1 ou 2)" });
+            res.status(400).json({ message: "Semestre inválido (use 1 ou 2)" });
           }
           report = await this.reportService.generateSemiAnnualReport(
             userId,
@@ -52,7 +52,7 @@ export class ReportController {
           break;
 
         default:
-          return res.status(400).json({ message: "Tipo de relatório inválido" });
+          res.status(400).json({ message: "Tipo de relatório inválido" });
       }
 
       res.json(report);
