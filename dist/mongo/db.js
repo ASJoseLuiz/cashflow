@@ -56,10 +56,11 @@ module.exports = __toCommonJS(db_exports);
 var import_mongoose = __toESM(require("mongoose"));
 var import_dotenv = __toESM(require("dotenv"));
 import_dotenv.default.config();
-var MONGO_URI = process.env.DATABASE_URL || "";
+var MONGO_URL = process.env.MONGO_URL || "";
+console.log("\u{1F50D} MONGO_URL:", MONGO_URL);
 var connectDatabase = () => __async(null, null, function* () {
   try {
-    yield import_mongoose.default.connect(MONGO_URI);
+    yield import_mongoose.default.connect(MONGO_URL);
     console.log("\u2705 Conectado ao MongoDB");
   } catch (error) {
     console.error("\u274C Erro ao conectar ao MongoDB:", error);

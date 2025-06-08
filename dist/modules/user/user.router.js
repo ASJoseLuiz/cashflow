@@ -126,14 +126,14 @@ var UserController = class {
   deleteUser(req, res, next) {
     return __async(this, null, function* () {
       try {
-        const { email, password } = req.body;
+        const { email } = req.user;
         if (!req.user) {
           throw new ForbiddenException("Usu\xE1rio n\xE3o autenticado");
         }
         if (email !== req.user.email) {
           throw new ForbiddenException("Voc\xEA s\xF3 pode deletar sua pr\xF3pria conta");
         }
-        yield this.userService.deleteUser(email, password);
+        yield this.userService.deleteUser(req.user.email);
         res.status(200).json({ message: "Usu\xE1rio deletado com sucesso" });
       } catch (error) {
         next(error);
@@ -247,14 +247,12 @@ var UserService = class {
       });
     });
   }
-  deleteUser(email, password) {
+  deleteUser(email) {
     return __async(this, null, function* () {
       const user = yield user_schema_default.findOne({ "value.email": email });
       if (!user) throw new NotFoundException("Usu\xE1rio n\xE3o existe");
       if (!user.value)
         throw new HttpException(406, "Documento inv\xE1lido ou incompleto.");
-      const isValid = (0, import_bcrypt.compareSync)(password, user.value.password);
-      if (!isValid) throw new ForbiddenException("Usu\xE1rio n\xE3o autorizado");
       yield user_schema_default.deleteOne({ "value.email": email });
     });
   }
@@ -366,7 +364,6 @@ userRouter.post(
 userRouter.delete(
   "/",
   authMiddleware,
-  validateBody(authUserSchema),
   (req, res, next) => userController.deleteUser(req, res, next)
 );
 userRouter.put(

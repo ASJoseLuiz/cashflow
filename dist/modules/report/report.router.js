@@ -3,8 +3,22 @@ var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -62,28 +76,43 @@ var ReportController = class {
   }
   generateReport(req, res, next) {
     return __async(this, null, function* () {
-      const userId = req.user.sub;
-      const { tipo, mes, ano } = req.query;
+      var _a;
+      const userId = (_a = req.user) == null ? void 0 : _a.sub;
+      const { tipo, mes, ano, semestre } = req.query;
+      if (!userId || !ano || typeof tipo !== "string") {
+        res.status(400).json({ message: "Par\xE2metros inv\xE1lidos" });
+      }
       try {
-        if (!userId || !ano) {
-          res.status(400).json({ message: "Par\xE2metros inv\xE1lidos" });
+        const anoNum = Number(ano);
+        let report;
+        switch (tipo) {
+          case "mensal":
+            if (!mes) {
+              res.status(400).json({ message: "M\xEAs \xE9 obrigat\xF3rio para relat\xF3rio mensal" });
+            }
+            report = yield this.reportService.generateMonthlyReport(
+              userId,
+              Number(mes),
+              anoNum
+            );
+            break;
+          case "anual":
+            report = yield this.reportService.generateAnnualReport(userId, anoNum);
+            break;
+          case "semestral":
+            if (!semestre || !["1", "2"].includes(semestre.toString())) {
+              res.status(400).json({ message: "Semestre inv\xE1lido (use 1 ou 2)" });
+            }
+            report = yield this.reportService.generateSemiAnnualReport(
+              userId,
+              Number(semestre),
+              anoNum
+            );
+            break;
+          default:
+            res.status(400).json({ message: "Tipo de relat\xF3rio inv\xE1lido" });
         }
-        if (tipo === "mensal") {
-          const report = yield this.reportService.generateMonthlyReport(
-            userId,
-            Number(mes),
-            Number(ano)
-          );
-          res.json(report);
-        }
-        if (tipo === "anual") {
-          const report = yield this.reportService.generateAnnualReport(
-            userId,
-            Number(ano)
-          );
-          res.json(report);
-        }
-        res.status(400).json({ message: "Tipo de relat\xF3rio inv\xE1lido" });
+        res.json(report);
       } catch (error) {
         next(error);
       }
@@ -133,24 +162,28 @@ var income_schema_default = import_mongoose2.default.model("IncomeModel", income
 
 // src/modules/report/report.service.ts
 var ReportService = class {
-  generateMonthlyReport(userId, month, year) {
+  getReportData(userId, start, end) {
     return __async(this, null, function* () {
-      const start = new Date(year, month - 1, 1);
-      const end = new Date(year, month, 1);
-      const despesas = yield expense_schema_default.find({
-        "value.userId": userId,
-        "value.date": { $gte: start, $lt: end }
-      });
-      const receitas = yield income_schema_default.find({
-        "value.userId": userId,
-        "value.date": { $gte: start, $lt: end }
-      });
-      const totalDespesas = despesas.length ? despesas.reduce((acc, d) => acc + (d.value.valor || 0), 0) : 0;
-      const totalReceitas = receitas.length ? receitas.reduce((acc, r) => acc + (r.value.valor || 0), 0) : 0;
+      const [despesas, receitas] = yield Promise.all([
+        expense_schema_default.find({
+          "value.userId": userId,
+          "value.date": { $gte: start, $lt: end }
+        }),
+        income_schema_default.find({
+          "value.userId": userId,
+          "value.date": { $gte: start, $lt: end }
+        })
+      ]);
+      const totalDespesas = despesas.reduce((acc, d) => {
+        var _a;
+        return acc + (((_a = d.value) == null ? void 0 : _a.valor) || 0);
+      }, 0);
+      const totalReceitas = receitas.reduce((acc, r) => {
+        var _a;
+        return acc + (((_a = r.value) == null ? void 0 : _a.valor) || 0);
+      }, 0);
       const saldo = totalReceitas - totalDespesas;
       return {
-        mes: month,
-        ano: year,
         despesas,
         receitas,
         totalDespesas: parseFloat(totalDespesas.toFixed(2)),
@@ -159,41 +192,38 @@ var ReportService = class {
       };
     });
   }
+  generateMonthlyReport(userId, month, year) {
+    return __async(this, null, function* () {
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 1);
+      const data = yield this.getReportData(userId, start, end);
+      return __spreadValues({
+        mes: month,
+        ano: year
+      }, data);
+    });
+  }
+  generateSemiAnnualReport(userId, semester, year) {
+    return __async(this, null, function* () {
+      const startMonth = semester === 1 ? 0 : 6;
+      const endMonth = semester === 1 ? 6 : 12;
+      const start = new Date(year, startMonth, 1);
+      const end = new Date(year, endMonth, 1);
+      const data = yield this.getReportData(userId, start, end);
+      return __spreadValues({
+        semestre: semester,
+        ano: year
+      }, data);
+    });
+  }
   generateAnnualReport(userId, year) {
     return __async(this, null, function* () {
       const start = new Date(year, 0, 1);
       const end = new Date(year + 1, 0, 1);
-      const despesas = yield expense_schema_default.find({
-        "value.userId": userId,
-        "value.date": { $gte: start, $lt: end }
-      });
-      const receitas = yield income_schema_default.find({
-        "value.userId": userId,
-        "value.date": { $gte: start, $lt: end }
-      });
-      const totalDespesas = despesas.reduce(
-        (acc, d) => {
-          var _a;
-          return acc + (((_a = d.value) == null ? void 0 : _a.valor) || 0);
-        },
-        0
-      );
-      const totalReceitas = receitas.reduce(
-        (acc, r) => {
-          var _a;
-          return acc + (((_a = r.value) == null ? void 0 : _a.valor) || 0);
-        },
-        0
-      );
-      const saldo = totalReceitas - totalDespesas;
-      return {
-        ano: year,
-        despesas,
-        receitas,
-        totalExpenses: parseFloat(totalDespesas.toFixed(2)),
-        totalIncome: parseFloat(totalReceitas.toFixed(2)),
-        balance: parseFloat(saldo.toFixed(2))
-      };
+      const data = yield this.getReportData(userId, start, end);
+      return __spreadValues({
+        ano: year
+      }, data);
     });
   }
 };

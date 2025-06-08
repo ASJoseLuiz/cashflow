@@ -166,14 +166,12 @@ var UserService = class {
       });
     });
   }
-  deleteUser(email, password) {
+  deleteUser(email) {
     return __async(this, null, function* () {
       const user = yield user_schema_default.findOne({ "value.email": email });
       if (!user) throw new NotFoundException("Usu\xE1rio n\xE3o existe");
       if (!user.value)
         throw new HttpException(406, "Documento inv\xE1lido ou incompleto.");
-      const isValid = (0, import_bcrypt.compareSync)(password, user.value.password);
-      if (!isValid) throw new ForbiddenException("Usu\xE1rio n\xE3o autorizado");
       yield user_schema_default.deleteOne({ "value.email": email });
     });
   }

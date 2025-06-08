@@ -101,14 +101,14 @@ var UserController = class {
   deleteUser(req, res, next) {
     return __async(this, null, function* () {
       try {
-        const { email, password } = req.body;
+        const { email } = req.user;
         if (!req.user) {
           throw new ForbiddenException("Usu\xE1rio n\xE3o autenticado");
         }
         if (email !== req.user.email) {
           throw new ForbiddenException("Voc\xEA s\xF3 pode deletar sua pr\xF3pria conta");
         }
-        yield this.userService.deleteUser(email, password);
+        yield this.userService.deleteUser(req.user.email);
         res.status(200).json({ message: "Usu\xE1rio deletado com sucesso" });
       } catch (error) {
         next(error);

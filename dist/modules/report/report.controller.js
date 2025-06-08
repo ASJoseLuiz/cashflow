@@ -49,28 +49,43 @@ var ReportController = class {
   }
   generateReport(req, res, next) {
     return __async(this, null, function* () {
-      const userId = req.user.sub;
-      const { tipo, mes, ano } = req.query;
+      var _a;
+      const userId = (_a = req.user) == null ? void 0 : _a.sub;
+      const { tipo, mes, ano, semestre } = req.query;
+      if (!userId || !ano || typeof tipo !== "string") {
+        res.status(400).json({ message: "Par\xE2metros inv\xE1lidos" });
+      }
       try {
-        if (!userId || !ano) {
-          res.status(400).json({ message: "Par\xE2metros inv\xE1lidos" });
+        const anoNum = Number(ano);
+        let report;
+        switch (tipo) {
+          case "mensal":
+            if (!mes) {
+              res.status(400).json({ message: "M\xEAs \xE9 obrigat\xF3rio para relat\xF3rio mensal" });
+            }
+            report = yield this.reportService.generateMonthlyReport(
+              userId,
+              Number(mes),
+              anoNum
+            );
+            break;
+          case "anual":
+            report = yield this.reportService.generateAnnualReport(userId, anoNum);
+            break;
+          case "semestral":
+            if (!semestre || !["1", "2"].includes(semestre.toString())) {
+              res.status(400).json({ message: "Semestre inv\xE1lido (use 1 ou 2)" });
+            }
+            report = yield this.reportService.generateSemiAnnualReport(
+              userId,
+              Number(semestre),
+              anoNum
+            );
+            break;
+          default:
+            res.status(400).json({ message: "Tipo de relat\xF3rio inv\xE1lido" });
         }
-        if (tipo === "mensal") {
-          const report = yield this.reportService.generateMonthlyReport(
-            userId,
-            Number(mes),
-            Number(ano)
-          );
-          res.json(report);
-        }
-        if (tipo === "anual") {
-          const report = yield this.reportService.generateAnnualReport(
-            userId,
-            Number(ano)
-          );
-          res.json(report);
-        }
-        res.status(400).json({ message: "Tipo de relat\xF3rio inv\xE1lido" });
+        res.json(report);
       } catch (error) {
         next(error);
       }
