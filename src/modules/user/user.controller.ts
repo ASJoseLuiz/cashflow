@@ -56,7 +56,7 @@ export class UserController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { email, password } = req.body;
+      const { email } = req.user;
 
       if (!req.user) {
         throw new ForbiddenException("Usuário não autenticado");
@@ -66,7 +66,7 @@ export class UserController {
         throw new ForbiddenException("Você só pode deletar sua própria conta");
       }
 
-      await this.userService.deleteUser(email, password);
+      await this.userService.deleteUser(req.user.email);
       res.status(200).json({ message: "Usuário deletado com sucesso" });
     } catch (error) {
       next(error);

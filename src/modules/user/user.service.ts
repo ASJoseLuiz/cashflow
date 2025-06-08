@@ -53,14 +53,11 @@ export class UserService {
     });
   }
 
-  public async deleteUser(email: string, password: string): Promise<void> {
+  public async deleteUser(email: string): Promise<void> {
     const user = await userModel.findOne({ "value.email": email });
     if (!user) throw new NotFoundException("Usuário não existe");
     if (!user.value)
       throw new HttpException(406, "Documento inválido ou incompleto.");
-
-    const isValid = compareSync(password, user.value.password);
-    if (!isValid) throw new ForbiddenException("Usuário não autorizado");
 
     await userModel.deleteOne({ "value.email": email });
   }

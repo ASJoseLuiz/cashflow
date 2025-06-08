@@ -19,11 +19,8 @@ userRouter.get("/:email", (req, res, next) =>
 userRouter.post("/", validateBody(createUserSchema), (req, res, next) =>
   userController.createUser(req, res, next)
 );
-userRouter.delete(
-  "/",
-  authMiddleware,
-  validateBody(authUserSchema),
-  (req, res, next) => userController.deleteUser(req, res, next)
+userRouter.delete("/", authMiddleware, (req, res, next) =>
+  userController.deleteUser(req, res, next)
 );
 
 userRouter.put(
