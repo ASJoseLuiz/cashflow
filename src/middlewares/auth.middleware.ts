@@ -12,19 +12,13 @@ declare global {
   }
 }
 
-export function authMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
-  const authHeader = req.headers.authorization;
+export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
+  const token = req.cookies?.token;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ message: "Token não fornecido ou mal formatado" });
+  if (!token) {
+    res.status(401).json({ message: "Token não fornecido" });
     return;
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, String(process.env.JWT_SECRET));

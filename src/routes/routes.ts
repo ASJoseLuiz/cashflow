@@ -8,7 +8,7 @@ import reportRouter from "../modules/report/report.router";
 export class Routes {
   static define(router: Router): Router {
     router.use("/user", userRouter);
-    router.use("/login", authRouter);
+    router.use("/auth", authRouter);
     router.use("/income", incomeRouter);
     router.use("/expense", expenseRouter);
     router.use("/report", reportRouter);
